@@ -21,6 +21,9 @@ gsServer.use(cors())
 gsServer.use(express.json())
 gsServer.use(router)
 
+// to view image in frontend
+gsServer.use('/uploads',express.static('./uploads'))
+
 // port creation
 const PORT = 5000 || process.env.PORT
 
