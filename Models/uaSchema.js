@@ -42,5 +42,5 @@ const uaSchema = new mongoose.Schema({
 });
 
 // create model
-const reports = mongoose.model("Reports", uaSchema);
+const reports = mongoose.model("reports", uaSchema);
 module.exports = reports;
