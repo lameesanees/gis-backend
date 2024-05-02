@@ -36,7 +36,7 @@ exports.addMa= async (req, res) => {
   console.log(userId);
 
   try {
-    const existingMaReport = await accidentreport.findOne({ date });
+    const existingMaReport = await accidentreport.findOne({ yournoplate });
     if (existingMaReport) {
       res.status(404).json("already exists");
     } else {
@@ -71,7 +71,7 @@ exports.getAMaReport = async (req, res) => {
 
   // case sensitive
   const query = {
-    yourname: { $regex: searchKey, $options: "i" },
+    yournoplate: { $regex: searchKey, $options: "i" },
   };
   // get userId
   const userId = req.payload

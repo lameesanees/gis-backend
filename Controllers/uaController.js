@@ -51,7 +51,7 @@ exports.getAReport = async (req, res) => {
 
   // case sensitive
   const query = {
-    location: { $regex: searchKey, $options: "i" },
+    aadhaar: { $regex: searchKey, $options: "i" },
   };
   // get userId
   const userId = req.payload

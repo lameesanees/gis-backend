@@ -12,7 +12,7 @@ exports.addOi = async (req, res) => {
   console.log(userId);
 
   try {
-    const existingOtherInfoReport = await otherinfo.findOne({ date });
+    const existingOtherInfoReport = await otherinfo.findOne({ contact });
     if (existingOtherInfoReport) {
       res.status(404).json("Already exists");
     } else {
@@ -40,7 +40,7 @@ exports.getAOtherInfo = async(req,res)=>{
     console.log(searchKey);
 
     const query={
-        infotype:{$regex:searchKey,$options:"i"}
+        contact:{$regex:searchKey,$options:"i"}
     };
     const userId=req.payload
     try{

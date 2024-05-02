@@ -7,8 +7,8 @@ const jwt =require('jsonwebtoken')
 // register logic
 exports.register = async (req, res) => {
   // accept data from client
-  const { username, email, password, aadhaar } = req.body;
-  console.log(username, email, password, aadhaar);
+  const { username, email, password, aadhaar,role } = req.body;
+  console.log(username, email, password, aadhaar,role);
 
   try {
     // check if the email is already registered
@@ -22,7 +22,8 @@ exports.register = async (req, res) => {
         email,
         password,
         aadhaar,
-        profile:""
+        profile:"",
+        role
       });
       await newUser.save();
       res.status(200).json(newUser);

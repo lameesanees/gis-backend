@@ -9,7 +9,7 @@ exports.addTp = async(req,res)=>{
     console.log(userId);
     
     try{
-        const existingTouristReport = await touristreports.findOne({location})
+        const existingTouristReport = await touristreports.findOne({contact})
         if(existingTouristReport){
             res.status(404).json("Already exists")
         }
@@ -36,7 +36,7 @@ exports.getATpReport = async(req,res)=>{
     console.log(searchKey);
 
     const query={
-        location:{$regex:searchKey,$options:"i"}
+        contact:{$regex:searchKey,$options:"i"}
     }
 
     const userId=req.payload
