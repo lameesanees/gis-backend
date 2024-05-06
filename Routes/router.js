@@ -7,7 +7,6 @@ const mcController = require("../Controllers/mcController");
 const oiControllers = require("../Controllers/oiControllers");
 const tpController = require("../Controllers/tpController");
 const maController = require("../Controllers/maController");
-const csController=require("../Controllers/csController")
 const jwtMiddleware = require("../Middlewares/jwtMiddleware");
 const multerConfig = require("../Middlewares/multerMiddleware");
 
@@ -91,11 +90,7 @@ router.get(
   maController.getAMaReport
 );
 
-// SOCIAL CHAIRTY
-router.get("/charityreport/get-charity-report",
-jwtMiddleware,
-csController.getACharity)
+// Get all users API call
+router.get("/users", userController.getUsers);
 
-// add
-router.post('/charityreport/charity-report',jwtMiddleware,csController.addCharity)
 module.exports = router;

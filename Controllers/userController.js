@@ -1,55 +1,71 @@
-// import userSchema or model
+// authController.js
+
+// Import userSchema or model
 const users = require("../Models/userSchema");
+const jwt = require('jsonwebtoken');
 
-// jwt
-const jwt =require('jsonwebtoken')
-
-// register logic
+// Register logic
 exports.register = async (req, res) => {
-  // accept data from client
-  const { username, email, password, aadhaar,role } = req.body;
-  console.log(username, email, password, aadhaar,role);
+  // Accept data from client
+  const { username, email, password, aadhaar, role } = req.body;
 
   try {
-    // check if the email is already registered
+    // Check if the email is already registered
     const existingUser = await users.findOne({ email });
-    console.log(existingUser);
     if (existingUser) {
       res.status(406).json("User Already Exists");
     } else {
+      // Create a new user
       const newUser = new users({
         username,
         email,
         password,
-        aadhaar,
-        profile:"",
-        role
+        aadhaar, role,
+        profile: "",
+       
       });
       await newUser.save();
       res.status(200).json(newUser);
     }
   } catch (err) {
-    res.status(500).json("Registeration Failed!");
+    res.status(500).json("Registration Failed");
   }
 };
 
-// login logic
-exports.login = async(req,res)=>{
-  // accept data from client
-  const {email,password}= req.body
-  try{
-    // check if email and password in db
-    const existingUser=await users.findOne({email,password})
-    if(existingUser){
-      const token = jwt.sign({userId:existingUser._id},"superkey")
-      console.log(token);
-      res.status(200).json({existingUser,token})
+// Login logic
+exports.login = async (req, res) => {
+  // Accept data from client
+  const { email, password } = req.body;
+  try {
+    // Check if email and password match in the database
+    const existingUser = await users.findOne({ email, password });
+    if (existingUser) {
+
+      // If user exists, generate a JWT token
+      const token = jwt.sign({ userId: existingUser._id }, "superkey");
+      res.status(200).json({ existingUser, token });
+    } else {
+      res.status(404).json("Invalid email or password");
     }
-    else{
-      res.status(404).json("Invalid email or password")
+  } catch (err) {
+    res.status(500).json("Login failed" + err);
+  }
+};
+exports.getUsers = async (req, res) => {
+  const searchKey = req.query.search || ""; // Handle undefined or empty search key
+
+  const query = {
+    email: { $regex: searchKey, $options: "i" }
+  };
+
+  try {
+    const Auser = await users.find(query);
+    if (Auser) {
+      res.status(200).json(Auser);
+    } else {
+      res.status(404).json("No users found");
     }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-  catch(err){
-    res.status(500).json("Registeration failed"+err)
-  }
-}
+};

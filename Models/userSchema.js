@@ -23,12 +23,13 @@ const userSchema = new mongoose.Schema({
         required:true,
         unique:true
     },
+    role:{
+        type:String,
+    },
     profile:{
         type:String,
     },
-    role:{
-        type:String,
-    }
+    
 })
 
 // create model
