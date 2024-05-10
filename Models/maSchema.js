@@ -53,6 +53,9 @@ const maSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  status: {
+    type: String,
+  },
 });
 
 const accidentreport = mongoose.model("accidentreport", maSchema);

@@ -92,5 +92,44 @@ router.get(
 
 // Get all users API call
 router.get("/users", userController.getUsers);
+router.delete('/delete-user/:userId',jwtMiddleware,userController.deleteUser)
+router.delete('/delete-unknown-accident/:uId', jwtMiddleware, uaController.deleteUa);
+router.delete('/delete-missing/:uId', jwtMiddleware, mcController.deleteMc);
+router.delete('/delete-other/:uId', jwtMiddleware, oiControllers.deleteOi);
+router.delete('/delete-tourist/:uId', jwtMiddleware, tpController.deleteTp);
+router.delete('/delete-accident/:uId', jwtMiddleware, maController.deleteMa);
+// EDIT UNKNOWN ACCIDENT REPORT
+// Edit unknown accident report API call
+// Update unknown accident report
+router.put(
+  "/report/update-unknown-accident/:uId",
+  jwtMiddleware,
+  multerConfig.single("uaImage"),
+  uaController.updateUa
+);
+router.put(
+  "/report/update-missing/:mcId",
+  jwtMiddleware,
+  multerConfig.single("mcImage"),
+  mcController.updateMc
+);
+router.put(
+  "/report/update-tourist/:tpId",
+  jwtMiddleware,
+  multerConfig.single("tpImage"),
+  tpController.updatetp
+);
+router.put(
+  "/report/update-other/:oId",
+  jwtMiddleware,
+  multerConfig.single("oiImage"),
+  oiControllers.updateOi
+);
+router.put(
+  "/report/update-acc/:mId",
+  jwtMiddleware,
+  multerConfig.single("maImage"),
+  maController.updatema
+);
 
 module.exports = router;

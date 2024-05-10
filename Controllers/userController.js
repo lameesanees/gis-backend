@@ -20,7 +20,8 @@ exports.register = async (req, res) => {
         username,
         email,
         password,
-        aadhaar, role,
+        aadhaar,
+         role,
         profile: "",
        
       });
@@ -67,5 +68,15 @@ exports.getUsers = async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteUser = async(req,res)=>{
+  const{userId}=req.params;
+  try{
+    const deleteUser=await users.findOneAndDelete({_id:userId});
+    res.status(200).json(deleteUser);
+  }catch (err) {
+    res.status(401).json({ message: err.message });
   }
 };

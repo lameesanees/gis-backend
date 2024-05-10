@@ -30,7 +30,9 @@ const oiSchema = new mongoose.Schema({
   userId:{
     type:String,
     required:true
-  }
+  },status: {
+    type: String,
+  },
 });
 
 const otherinfo = mongoose.model("otherinfo",oiSchema);

@@ -35,10 +35,13 @@ const uaSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  userId:{
-    type:String,
-    required:true
-  }
+  userId: {
+    type: String,
+    required: true,
+  },
+  status: {
+    type: String,
+  },
 });
 
 // create model
