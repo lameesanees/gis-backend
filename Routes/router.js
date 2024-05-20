@@ -44,7 +44,12 @@ router.post(
 );
 router.get("/get-a-traffic", jwtMiddleware, trafController.getTrafficReport);
 router.delete('/delete-traffic/:uId', jwtMiddleware, trafController.deleteTraffic);
-
+router.put(
+  "/update/:tId",
+  jwtMiddleware,
+  multerConfig.single("tImage"),
+  trafController.updateTraf
+);
 // Missing Cases Report Routes
 router.post(
   "/missingcases/missing-case",

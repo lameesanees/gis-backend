@@ -3,6 +3,40 @@
 // Import userSchema or model
 const users = require("../Models/userSchema");
 const jwt = require('jsonwebtoken');
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+// OTP verification logic
+exports.verifyOTP = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    // Find the user by email
+    const user = await users.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json("User not found");
+    }
+
+    // Check if OTP matches
+    if (user.otp !== otp) {
+      return res.status(400).json("Invalid OTP");
+    }
+
+    // Clear OTP from user document
+    user.otp = null;
+    await user.save();
+
+    // Optionally mark email as verified (if needed)
+    // user.emailVerified = true;
+    // await user.save();
+
+    res.status(200).json("OTP verified successfully");
+  } catch (err) {
+    console.error("OTP verification failed:", err);
+    res.status(500).json("OTP verification failed");
+  }
+};
 
 // Register logic
 exports.register = async (req, res) => {
@@ -13,24 +47,47 @@ exports.register = async (req, res) => {
     // Check if the email is already registered
     const existingUser = await users.findOne({ email });
     if (existingUser) {
-      res.status(406).json("User Already Exists");
-    } else {
-      // Create a new user
-      const newUser = new users({
-        username,
-        email,
-        password,
-        aadhaar,
-         role,
-        profile: "",
-       
-      });
-      await newUser.save();
-      res.status(200).json(newUser);
+      return res.status(406).json("User Already Exists");
     }
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Send OTP via Email
+    sendOTP(email, otp);
+
+    // Create a new user
+    const newUser = new users({
+      username,
+      email,
+      password,
+      aadhaar,
+      role,
+      profile: "",
+      otp: otp  // Save OTP in the user document
+    });
+    await newUser.save();
+    
+    res.status(200).json(newUser);
   } catch (err) {
     res.status(500).json("Registration Failed");
   }
+};
+
+// Function to generate OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000); // 6-digit OTP
+};
+
+// Function to send OTP via email
+const sendOTP = (email, otp) => {
+  const msg = {
+    to: email,
+    from: 'your@email.com',
+    subject: 'OTP for Registration',
+    text: `Your OTP for registration is: ${otp}`,
+  };
+  sgMail.send(msg);
 };
 
 // Login logic
