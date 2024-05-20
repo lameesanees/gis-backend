@@ -2,6 +2,7 @@
 const users = require("../Models/userSchema");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000); // Generates a random 6-digit OTP
 };
@@ -18,18 +19,11 @@ const sendEmailWithOTP = (email, otp) => {
   });
 
   transporter
-  sendMail({
-    to: email,
-    subject: `Guard India Seva (OTP)`,
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <p style="color: #d9534f;">To authenticate, please use the following One Time Password (OTP):</p>
-        <p style="font-size: 1.2em;"><strong>${otp}</strong></p>
-        <p>Please do not share this OTP with anyone. Keeping it confidential helps protect your account. If you did not request a verification, please ignore this email.</p>
-      </div>
-    `
-  })
-  
+    .sendMail({
+      to: email,
+      subject: "Your One-Time Password (OTP)",
+      html: `<p>Your OTP is: <strong>${otp}</strong></p>`,
+    })
     .then(() => {
       console.log("Email sent with OTP");
     })
@@ -92,6 +86,7 @@ exports.login = async (req, res) => {
   }
 };
 
+
 exports.verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
@@ -111,6 +106,7 @@ exports.verifyOTP = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 exports.getUsers = async (req, res) => {
   const searchKey = req.query.search || ""; // Handle undefined or empty search key
