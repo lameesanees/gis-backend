@@ -15,6 +15,7 @@ const router = express.Router();
 
 // User Routes
 router.post("/register", userController.register);
+router.post("/verify-otp", userController.verifyOTP);
 router.post("/login", userController.login);
 router.get("/users", userController.getUsers);
 router.delete('/delete-user/:userId', jwtMiddleware, userController.deleteUser);

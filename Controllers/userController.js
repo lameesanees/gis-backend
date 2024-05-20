@@ -1,41 +1,35 @@
-// authController.js
-
 // Import userSchema or model
 const users = require("../Models/userSchema");
-const jwt = require('jsonwebtoken');
-const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
-// OTP verification logic
-exports.verifyOTP = async (req, res) => {
-  const { email, otp } = req.body;
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000); // Generates a random 6-digit OTP
+};
 
-  try {
-    // Find the user by email
-    const user = await users.findOne({ email });
+// Function to send email with OTP
+const sendEmailWithOTP = (email, otp) => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    auth: {
+      user: "lamees.anees@gmail.com",
+      pass: "lkxh zkrv slgj sfhz",
+    },
+  });
 
-    if (!user) {
-      return res.status(404).json("User not found");
-    }
-
-    // Check if OTP matches
-    if (user.otp !== otp) {
-      return res.status(400).json("Invalid OTP");
-    }
-
-    // Clear OTP from user document
-    user.otp = null;
-    await user.save();
-
-    // Optionally mark email as verified (if needed)
-    // user.emailVerified = true;
-    // await user.save();
-
-    res.status(200).json("OTP verified successfully");
-  } catch (err) {
-    console.error("OTP verification failed:", err);
-    res.status(500).json("OTP verification failed");
-  }
+  transporter
+    .sendMail({
+      to: email,
+      subject: "Your One-Time Password (OTP)",
+      html: `<p>Your OTP is: <strong>${otp}</strong></p>`,
+    })
+    .then(() => {
+      console.log("Email sent with OTP");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 // Register logic
@@ -53,8 +47,8 @@ exports.register = async (req, res) => {
     // Generate OTP
     const otp = generateOTP();
 
-    // Send OTP via Email
-    sendOTP(email, otp);
+    // Send OTP via email
+    sendEmailWithOTP(email, otp);
 
     // Create a new user
     const newUser = new users({
@@ -63,33 +57,16 @@ exports.register = async (req, res) => {
       password,
       aadhaar,
       role,
+      otp, // Save OTP in the user document
       profile: "",
-      otp: otp  // Save OTP in the user document
     });
     await newUser.save();
-    
+
     res.status(200).json(newUser);
   } catch (err) {
     res.status(500).json("Registration Failed");
   }
 };
-
-// Function to generate OTP
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000); // 6-digit OTP
-};
-
-// Function to send OTP via email
-const sendOTP = (email, otp) => {
-  const msg = {
-    to: email,
-    from: 'your@email.com',
-    subject: 'OTP for Registration',
-    text: `Your OTP for registration is: ${otp}`,
-  };
-  sgMail.send(msg);
-};
-
 // Login logic
 exports.login = async (req, res) => {
   // Accept data from client
@@ -98,7 +75,6 @@ exports.login = async (req, res) => {
     // Check if email and password match in the database
     const existingUser = await users.findOne({ email, password });
     if (existingUser) {
-
       // If user exists, generate a JWT token
       const token = jwt.sign({ userId: existingUser._id }, "superkey");
       res.status(200).json({ existingUser, token });
@@ -109,11 +85,34 @@ exports.login = async (req, res) => {
     res.status(500).json("Login failed" + err);
   }
 };
+
+
+exports.verifyOTP = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    // Find user by email
+    const user = await users.findOne({ email });
+
+    // Check if user exists and OTP matches
+    if (user && user.otp === otp) {
+      // Update user's OTP verification status
+      await users.findOneAndUpdate({ email }, { isOTPVerified: true });
+      res.status(200).json({ message: "OTP verification successful" });
+    } else {
+      res.status(400).json({ message: "Invalid OTP" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 exports.getUsers = async (req, res) => {
   const searchKey = req.query.search || ""; // Handle undefined or empty search key
 
   const query = {
-    email: { $regex: searchKey, $options: "i" }
+    email: { $regex: searchKey, $options: "i" },
   };
 
   try {
@@ -128,13 +127,12 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-exports.deleteUser = async(req,res)=>{
-  const{userId}=req.params;
-  try{
-    const deleteUser=await users.findOneAndDelete({_id:userId});
+exports.deleteUser = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const deleteUser = await users.findOneAndDelete({ _id: userId });
     res.status(200).json(deleteUser);
-  }catch (err) {
+  } catch (err) {
     res.status(401).json({ message: err.message });
   }
 };
-
