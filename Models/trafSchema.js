@@ -29,7 +29,9 @@ const trafSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
- 
+  userId:{
+    type:String
+  }
 });
 
 const TrafficFine = mongoose.model("TrafficFine", trafSchema);

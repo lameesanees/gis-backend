@@ -1,4 +1,51 @@
 const missingcases = require("../Models/mcSchema");
+const nodemailer = require("nodemailer");
+const users = require("../Models/userSchema");
+
+const sendEmailNotification = (email, reportDetails) => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    auth: {
+      user: "lamees.anees@gmail.com",
+      pass: "lkxh zkrv slgj sfhz", // Ensure the correct password or app-specific password is used
+    },
+  });
+
+  const mailOptions = {
+    to: email,
+    subject: "Missing Cases Report Created Successfully",
+    html: `<p>Dear User</p>
+    <p>We are pleased to inform you that a missing cases report has been successfully created.</p>
+    Your Tracking Id is : <strong>${reportDetails.userId} </strong>
+           <ul>
+             <li>Full Name: ${reportDetails.fullname}</li>
+             <li>Age: ${reportDetails.age}</li>
+             <li>Gender: ${reportDetails.gender}</li>
+             <li>Last Location: ${reportDetails.lastlocation}</li>
+             <li>Date: ${reportDetails.date}</li>
+             <li>Description: ${reportDetails.description}</li>
+          <li>Contact: ${reportDetails.contact}</li>
+           </ul>
+           <p>The complete report is attached for your reference.
+
+           Should you require any further assistance or have any queries, please feel free to contact us. We are here to help.
+           
+           Thank you for choosing our services. We look forward to serving you again in the future.
+           </p> </br>
+           <p>Best regards,</p> </br>
+           <p>GuardIndiaSeva.com</p>`,
+  };
+
+  transporter
+    .sendMail(mailOptions)
+    .then(() => {
+      console.log("Email sent with missing cases report details");
+    })
+    .catch((err) => {
+      console.log("Error sending email:", err);
+    });
+};
 
 // addMissing logic
 exports.addMc = async (req, res) => {
@@ -22,7 +69,7 @@ exports.addMc = async (req, res) => {
   try {
     const existingMissingReport = await missingcases.findOne({ fullname });
     if (existingMissingReport) {
-      res.status(404).json("already exists");
+      res.status(404).json("Report already exists");
     } else {
       const newMissingReport = new missingcases({
         fullname,
@@ -37,12 +84,18 @@ exports.addMc = async (req, res) => {
       });
       await newMissingReport.save();
       res.status(200).json(newMissingReport);
-      newMissingReport;
+
+      // Fetch the user's email from the users collection
+      const user = await users.findById(userId);
+      if (user) {
+        sendEmailNotification(user.email, newMissingReport); // Pass user's email to sendEmailNotification
+      }
     }
   } catch (err) {
     res.status(401).json({ message: err.message });
   }
 };
+
 
 // get a particular missing report
 
@@ -52,7 +105,7 @@ exports.getAMissingReport = async (req, res) => {
 
   // case sensitive
   const query = {
-    fullname: { $regex: searchKey, $options: "i" },
+    userId: { $regex: searchKey, $options: "i" },
   };
   // get userId
   const userId = req.payload;

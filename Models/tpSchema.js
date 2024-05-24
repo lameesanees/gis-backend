@@ -24,6 +24,10 @@ const tpSchema = new mongoose.Schema({
   status: {
     type: String,
   },
+  userId:{
+    type: String,
+
+  }
 });
 
 const touristreports = mongoose.model("touristreports", tpSchema);

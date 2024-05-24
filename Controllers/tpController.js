@@ -1,5 +1,48 @@
 const touristreports = require("../Models/tpSchema");
+const nodemailer = require("nodemailer");
+const users = require("../Models/userSchema");
+// add uaReport logic
+const sendEmailNotification = (email, reportDetails) => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    auth: {
+      user: "lamees.anees@gmail.com",
+      pass: "lkxh zkrv slgj sfhz", // Ensure the correct password or app-specific password is used
+    },
+  });
 
+  const mailOptions = {
+    to: email,
+    subject: "Report Created Successfully",
+    html: `<p>Dear User</p>
+    <p>We are pleased to inform you that your requested report has been successfully generated.</p>
+    Your Tracking Id is : <strong>${reportDetails.userId} </strong>
+           <ul>
+             <li>Full Name: ${reportDetails.fullname}</li>
+             <li>Location: ${reportDetails.location}</li>
+             <li>Description: ${reportDetails.description}</li>
+             <li>Contact: ${reportDetails.contact}</li>
+           </ul>
+           <p>The complete report is attached for your reference.
+
+           Should you require any further assistance or have any queries, please feel free to contact us. We are here to help.
+           
+           Thank you for choosing our services. We look forward to serving you again in the future.
+           </br>
+           Best regards,</p> </br>
+           <p>GuardIndiaSeva.com</p>`,
+  };
+
+  transporter
+    .sendMail(mailOptions)
+    .then(() => {
+      console.log("Email sent with report details");
+    })
+    .catch((err) => {
+      console.log("Error sending email:", err);
+    });
+};
 exports.addTp = async (req, res) => {
   console.log("Inside the add tourist report method");
   const { fullname, location, contact, description } = req.body;
@@ -19,10 +62,14 @@ exports.addTp = async (req, res) => {
         contact,
         description,
         tpImage,
+        userId
       });
       await newTpReports.save();
       res.status(200).json(newTpReports);
-      newTpReports;
+      const user = await users.findById(userId);
+      if (user) {
+        sendEmailNotification(user.email, newTpReports); // Pass user's email to sendEmailNotification
+      };
     }
   } catch (err) {
     res.status(401).json({ message: err.message });
@@ -34,7 +81,7 @@ exports.getATpReport = async (req, res) => {
   console.log(searchKey);
 
   const query = {
-    contact: { $regex: searchKey, $options: "i" },
+    userId: { $regex: searchKey, $options: "i" },
   };
 
   const userId = req.payload;
