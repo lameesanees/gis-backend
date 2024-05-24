@@ -31,81 +31,89 @@ const sendEmailWithOTP = (email, otp) => {
       console.log(err);
     });
 };
-
 // Register logic
 exports.register = async (req, res) => {
-  // Accept data from client
   const { username, email, password, aadhaar, role } = req.body;
 
   try {
-    // Check if the email is already registered
     const existingUser = await users.findOne({ email });
     if (existingUser) {
       return res.status(406).json("User Already Exists");
     }
 
-    // Generate OTP
     const otp = generateOTP();
-
-    // Send OTP via email
     sendEmailWithOTP(email, otp);
 
-    // Create a new user
     const newUser = new users({
       username,
       email,
       password,
       aadhaar,
       role,
-      otp, // Save OTP in the user document
+      otp,
+      isOTPVerified: false, // Initial OTP verification status
       profile: "",
     });
     await newUser.save();
 
-    res.status(200).json(newUser);
+    res.status(200).json({ message: "User registered, please verify OTP" });
   } catch (err) {
+    console.error("Registration error:", err);
     res.status(500).json("Registration Failed");
   }
 };
 // Login logic
 exports.login = async (req, res) => {
-  // Accept data from client
   const { email, password } = req.body;
   try {
-    // Check if email and password match in the database
     const existingUser = await users.findOne({ email, password });
-    if (existingUser) {
-      // If user exists, generate a JWT token
-      const token = jwt.sign({ userId: existingUser._id }, "superkey");
-      res.status(200).json({ existingUser, token });
-    } else {
-      res.status(404).json("Invalid email or password");
+
+    if (!existingUser) {
+      return res.status(404).json("Invalid email or password");
     }
+
+    if (!existingUser.isOTPVerified) {
+      return res.status(400).json("Please verify your OTP first");
+    }
+
+    const token = jwt.sign({ userId: existingUser._id }, "superkey");
+    res.status(200).json({ existingUser, token });
   } catch (err) {
+    console.error("Login error:", err);
     res.status(500).json("Login failed" + err);
   }
 };
+
+
 
 
 exports.verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
   try {
-    // Find user by email
     const user = await users.findOne({ email });
 
-    // Check if user exists and OTP matches
-    if (user && user.otp === otp) {
-      // Update user's OTP verification status
-      await users.findOneAndUpdate({ email }, { isOTPVerified: true });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isOTPVerified) {
+      return res.status(400).json({ message: "OTP already verified" });
+    }
+
+    if (user.otp === otp) {
+      await users.findOneAndUpdate({ email }, { isOTPVerified: true, otp: null }); // Clear OTP after verification
       res.status(200).json({ message: "OTP verification successful" });
     } else {
       res.status(400).json({ message: "Invalid OTP" });
     }
   } catch (error) {
+    console.error("Error verifying OTP:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
 
 
 exports.getUsers = async (req, res) => {
