@@ -1,8 +1,8 @@
-// Import userSchema or model
 const users = require("../Models/userSchema");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 
+// Function to generate OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000); // Generates a random 6-digit OTP
 };
@@ -62,28 +62,25 @@ exports.register = async (req, res) => {
     res.status(500).json("Registration Failed");
   }
 };
+
 // Login logic
 exports.login = async (req, res) => {
+  // Accept data from client
   const { email, password } = req.body;
   try {
+    // Check if email and password match in the database
     const existingUser = await users.findOne({ email, password });
-
-    if (!existingUser) {
-      return res.status(404).json("Invalid email or password");
+    if (existingUser) {
+      // If user exists, generate a JWT token
+      const token = jwt.sign({ userId: existingUser._id }, "superkey");
+      res.status(200).json({ existingUser, token });
+    } else {
+      res.status(404).json("Invalid email or password");
     }
-
-    if (!existingUser.isOTPVerified) {
-      return res.status(400).json("Please verify your OTP first");
-    }
-
-    const token = jwt.sign({ userId: existingUser._id }, "superkey");
-    res.status(200).json({ existingUser, token });
   } catch (err) {
-    console.error("Login error:", err);
     res.status(500).json("Login failed" + err);
   }
 };
-
 
 
 exports.verifyOTP = async (req, res) => {
