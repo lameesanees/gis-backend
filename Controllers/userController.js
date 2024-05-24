@@ -14,7 +14,7 @@ const sendEmailWithOTP = (email, otp) => {
     port: 465,
     auth: {
       user: "lamees.anees@gmail.com",
-      pass: "lkxh zkrv slgj sfhz",
+      pass: "lkxh zkrv slgj sfhz", // Ensure the correct password or app-specific password is used
     },
   });
 
@@ -28,10 +28,10 @@ const sendEmailWithOTP = (email, otp) => {
       console.log("Email sent with OTP");
     })
     .catch((err) => {
-      console.log(err);
+      console.log("Error sending email:", err);
     });
 };
-// Register logic
+
 exports.register = async (req, res) => {
   const { username, email, password, aadhaar, role } = req.body;
 
@@ -86,7 +86,6 @@ exports.login = async (req, res) => {
 
 
 
-
 exports.verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
@@ -112,7 +111,6 @@ exports.verifyOTP = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 
 
